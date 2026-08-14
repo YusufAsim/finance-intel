@@ -26,7 +26,6 @@ venv/
 env/
 ENV/
 .python-version
-uv.lock
 
 # test / coverage / lint
 .pytest_cache/
