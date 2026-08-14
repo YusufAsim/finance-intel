@@ -1,0 +1,169 @@
+name: finance-intel
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: fi-postgres
+    env_file:
+      - postgres.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - fi-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: fi-backend
+    env_file:
+      - backend.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app
+      - ../data/out:/data/out:ro
+    networks:
+      - fi-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).status == 200 else 1)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  ml:
+    build:
+      context: ../ml
+      dockerfile: Dockerfile
+    container_name: fi-ml
+    env_file:
+      - ml.env
+    ports:
+      - "8001:8000"
+    volumes:
+      - ../ml:/app
+      - mlartifacts:/artifacts
+    networks:
+      - fi-net
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).status == 200 else 1)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  mcp:
+    build:
+      context: ../mcp
+      dockerfile: Dockerfile
+    container_name: fi-mcp
+    env_file:
+      - mcp.env
+    ports:
+      - "8002:8000"
+    volumes:
+      - ../mcp:/app
+    networks:
+      - fi-net
+    depends_on:
+      ml:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).status == 200 else 1)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  agentic:
+    build:
+      context: ../agentic
+      dockerfile: Dockerfile
+    container_name: fi-agentic
+    env_file:
+      - agentic.env
+    ports:
+      - "8003:8000"
+    volumes:
+      - ../agentic:/app
+    networks:
+      - fi-net
+    depends_on:
+      mcp:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz', timeout=3).status == 200 else 1)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ../web
+      dockerfile: Dockerfile
+    container_name: fi-web
+    env_file:
+      - web.env
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../web:/app
+      - /app/node_modules
+    networks:
+      - fi-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:5173/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: fi-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - fi-net
+    depends_on:
+      agentic:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost/healthz || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
+
+networks:
+  fi-net:
+    driver: bridge
+
+volumes:
+  pgdata:
+  mlartifacts:
