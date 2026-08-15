@@ -63,5 +63,10 @@ def main(argv: list[str] | None = None) -> int:
         path = writer.write_transactions(
             statement.transactions, args.out, name, args.seed
         )
-        print(f"{name}: {len(statement.transactions)} transactions -> {path}")
+        labels = writer.write_labels(statement.labels, args.out, name, args.seed)
+        anomalies = sum(1 for label in statement.labels if label["is_anomaly"])
+        print(
+            f"{name}: {len(statement.transactions)} transactions "
+            f"({anomalies} anomalies) -> {path}, {labels}"
+        )
     return 0
