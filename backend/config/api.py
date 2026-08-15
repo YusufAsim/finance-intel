@@ -23,5 +23,7 @@ router.register("budgets", BudgetViewSet, basename="budget")
 router.register("anomaly-flags", AnomalyFlagViewSet, basename="anomaly-flag")
 
 urlpatterns = [
+    # insight routes come first so they win over the router detail route
+    path("", include("apps.insights.urls")),
     path("", include(router.urls)),
 ]
