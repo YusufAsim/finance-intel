@@ -69,7 +69,7 @@ DATABASES = {
     "default": dj_database_url.parse(
         os.environ.get(
             "DATABASE_URL",
-            "postgres://finance:change-me@localhost:5432/finance",
+            "postgres://finance:change-me@localhost:5433/finance",
         ),
         conn_max_age=60,
     )
