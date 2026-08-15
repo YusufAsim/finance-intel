@@ -354,9 +354,15 @@ def _plant_anomalies(
                 continue
             item = ordered[index]
             shift = rng.randint(9, 16)
+            # stay inside the same month so the history keeps the length
+            # the caller asked for
             ordered[index] = replace(
                 item,
-                booked_on=item.booked_on + timedelta(days=shift),
+                booked_on=_clamp_day(
+                    item.booked_on.year,
+                    item.booked_on.month,
+                    item.booked_on.day + shift,
+                ),
                 anomaly_kind=ANOMALY_OFF_SCHEDULE,
             )
 
