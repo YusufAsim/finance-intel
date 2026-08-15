@@ -22,3 +22,14 @@ dev = [
 
 [tool.uv]
 package = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
