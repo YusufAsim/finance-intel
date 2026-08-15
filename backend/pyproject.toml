@@ -25,6 +25,11 @@ dev = [
 [tool.uv]
 package = false
 
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+testpaths = ["tests"]
+addopts = "--reuse-db"
+
 [tool.ruff]
 line-length = 88
 target-version = "py312"
