@@ -105,16 +105,21 @@ def recurring(transactions: list[TransactionIn]) -> tuple[list[dict], float]:
     return series, overall
 
 
+def _median(amounts: list[Decimal]) -> Decimal:
+    ordered = sorted(amounts)
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        return ordered[middle]
+    return (ordered[middle - 1] + ordered[middle]) / 2
+
+
 def anomaly(transactions: list[TransactionIn]) -> tuple[list[dict], float]:
     """Score against the median amount of the same merchant."""
     by_merchant: dict[str, list[Decimal]] = defaultdict(list)
     for item in transactions:
         by_merchant[merchant_of(item.raw_description)].append(item.amount)
 
-    typical = {
-        merchant: sorted(amounts)[len(amounts) // 2]
-        for merchant, amounts in by_merchant.items()
-    }
+    typical = {merchant: _median(amounts) for merchant, amounts in by_merchant.items()}
 
     scores = []
     for item in transactions:
