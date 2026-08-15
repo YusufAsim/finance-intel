@@ -1,0 +1,30 @@
+[project]
+name = "finance-intel-data"
+version = "0.1.0"
+description = "Deterministic synthetic bank statement generator"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.7",
+    "black>=24.10",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
