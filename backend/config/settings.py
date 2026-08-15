@@ -5,6 +5,8 @@ from pathlib import Path
 
 import dj_database_url
 
+from config.logging import build_config
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -37,6 +39,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "config.middleware.TimingMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -113,3 +116,6 @@ ML_TIMEOUT_SECONDS = float(os.environ.get("ML_TIMEOUT_SECONDS", "10"))
 
 # Directory holding generator output, mounted read only in compose.
 DATA_DIR = Path(os.environ.get("DATA_DIR", BASE_DIR.parent / "data" / "out"))
+
+LOG_LEVEL = os.environ.get("DJANGO_LOG_LEVEL", "INFO").upper()
+LOGGING = build_config(LOG_LEVEL)
