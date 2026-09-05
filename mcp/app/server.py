@@ -14,7 +14,11 @@ from app.tools.finance import mcp
 settings = get_settings()
 logging.basicConfig(level=settings.log_level)
 
-app = FastAPI(title="finance-intel mcp", version="0.1.0")
+# the mcp protocol endpoints live under /mcp, and the session manager it
+# starts has to run inside the parent application's lifespan
+mcp_app = mcp.http_app(path="/")
+
+app = FastAPI(title="finance-intel mcp", version="0.1.0", lifespan=mcp_app.lifespan)
 
 
 @app.get("/healthz")
@@ -23,5 +27,4 @@ def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
-# the mcp protocol endpoints live under /mcp
-app.mount("/mcp", mcp.http_app(path="/"))
+app.mount("/mcp", mcp_app)
