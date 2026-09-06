@@ -12,6 +12,34 @@ The platform answers five questions:
 - Where does my balance land next month?
 - Can I ask all of this in plain language?
 
+## Status
+
+The contract between the services and the end to end flow are in place:
+the data generator, the domain models, the REST API, the tool surface,
+the router and the dashboard all run. The model layer is the one piece
+still missing.
+
+| Layer | Status |
+|---|---|
+| Synthetic data generator | Labelled, deterministic, done |
+| backend domain + REST API | Done |
+| mcp tool surface | Done |
+| agentic router | Rule based, done |
+| web dashboard | Done |
+| ml prediction layer | **Deterministic stub** |
+
+The `ml` service does not host a trained model yet. The endpoints return
+the real response schema, but the logic behind them is a rule based
+placeholder in `ml/app/pipelines/stubs.py`; `MODEL_VERSION` reports this
+as `stub-0.1.0`. The order is deliberate: the HTTP contract was fixed
+first, so that none of the other services have to change when a model
+arrives.
+
+Models will be developed under `notebooks/`, saved into `ml/artifacts/`
+and loaded through `ml/app/models/`. Because the generator hands over
+its labels (category, series id, anomaly flag), scoring them is
+measurable directly.
+
 ## Architecture
 
 ```
@@ -349,3 +377,7 @@ uv run --directory data python -m generator --seed 42 --months 24 --out out/
 
 Because the labels come for free, model output is measurable: the gap
 between prediction and truth is computed directly.
+
+## License
+
+MIT. See `LICENSE` for the full text.
